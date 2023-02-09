@@ -18,7 +18,7 @@ public class Request {
         private String body;
         private long queryParams;
 
-    public Request() {
+    public Request(String requestLine) {
             this.headers = new ConcurrentHashMap<>();
             this.method = "";
             this.path = "";
@@ -81,7 +81,7 @@ public class Request {
             int delimiter = path.indexOf(QUERY_DELIMITER);
             if (delimiter == -1) return;
             Date URLEncodedUtils = null;
-            queryParams = URLEncodedUtils.parse(path.substring(delimiter + 1), StandardCharsets.UTF_8);
+            queryParams = URLEncodedUtils.parse(path.substring(delimiter + 1));
         }
 
 

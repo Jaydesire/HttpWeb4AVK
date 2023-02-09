@@ -11,7 +11,7 @@ public class Main {
     public static void main(String[] args) {
 
         final var server = new Server();
-        server.start();
+
 
         server.addHandler("GET", "/index.html", new src.main.Handler() {
 
@@ -33,14 +33,15 @@ public class Main {
                 // TODO: handlers code
                 System.out.println("Reguest = " + request);
 
-                try {
-                    responseStream.write(("HTTP/1.1 200 OK\r\n" + "Connection: close\r\n" +  "\r\n").getBytes());
-                    responseStream.flush();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    responseStream.write(("HTTP/1.1 200 OK\r\n" + "Connection: close\r\n" +  "\r\n").getBytes());
+//                    responseStream.flush();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
             }
         });
-        server.listen(9999);
+//        server.listen(9999);
+        server.start();
     }
 }
