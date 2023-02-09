@@ -7,14 +7,17 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
 
 public class Server {
     private final List<String> validPaths = List.of("/index.html", "/spring.svg", "/spring.png", "/resources.html", "/styles.css", "/app.js", "/links.html", "/forms.html", "/classic.html", "/events.html", "/events.js");
     private final ExecutorService executorService = Executors.newFixedThreadPool(64);
     private static final int PORT = 9999;
     private static final int LIMIT_CONNECTIONS = 64;
+    private static ConcurrentHashMap<String, ConcurrentHashMap<String, Handler>> handlers = new ConcurrentHashMap<>();
 
     public Server() {
 
@@ -41,6 +44,29 @@ public class Server {
             final String[] parts = getResponsePartsFromRequest(in);
             final var path = parts[1];
 
+
+            var methodMap = handlers.get(parts[0]);
+            if (methodMap == null) {
+                System.out.println("404: methodMap == null");
+                return;
+            }
+
+            var handler = methodMap.get(parts[1]);
+            if (handler == null) {
+                System.out.println("404: handler == null");
+                return;
+            }
+
+            handler.handle(request, out);
+
+            out.write((
+                    "HTTP/1.1 200 OK\r\n" +
+                            "Content-Length: 0\r\n" +
+                            "Connection: close\r\n" +
+                            "\r\n"
+            ).getBytes());
+            out.flush();
+
             if (parts.length != 3) {
                 // just close socket
             } else if (!validPaths.contains(path)) {
@@ -48,6 +74,9 @@ public class Server {
             } else {
                 getTrueResponse(out, path);
             }
+
+
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,7 +99,6 @@ public class Server {
 
     private String okResponse(String mimeType, long length) {
         return "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: " + mimeType + "\r\n" +
                 "Content-Length: " + length + "\r\n" +
                 "Connection: close\r\n" +
                 "\r\n";
@@ -95,6 +123,16 @@ public class Server {
             Files.copy(filePath, out);
         }
         out.flush();
+    }
+
+    public void listen(int i) {
+    }
+
+    public static void addHandler(String method, String path, src.main.Handler handler) {
+        handlers.putIfAbsent(method, new ConcurrentHashMap<>());
+
+        var methodMap = handlers.get(method);
+        methodMap.put(path, handler);
     }
 
 }
